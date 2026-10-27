@@ -1,0 +1,58 @@
+{
+  "os": "macOS-15.3-arm64-arm-64bit",
+  "fixtureFiles": 100000,
+  "cacheState": "uncontrolled/warm after fixture creation; NOT a cold-cache benchmark",
+  "runs": [
+    {
+      "allocatedBytes": 25624576,
+      "analysisSeconds": 0.03029549994971603,
+      "complete": true,
+      "engine": "darwin-fts",
+      "entries": 100106,
+      "finderMetadataEntries": 1,
+      "findings": 0,
+      "issues": 0,
+      "logicalBytes": 2148302230,
+      "peakRSSBytes": 38666240,
+      "protectedFindings": 0,
+      "seconds": 1.1291727499337867
+    },
+    {
+      "allocatedBytes": 25624576,
+      "analysisSeconds": 0.031697875005193055,
+      "complete": true,
+      "engine": "darwin-fts",
+      "entries": 100106,
+      "finderMetadataEntries": 1,
+      "findings": 0,
+      "issues": 0,
+      "logicalBytes": 2148302230,
+      "peakRSSBytes": 38715392,
+      "protectedFindings": 0,
+      "seconds": 0.1778265000320971
+    },
+    {
+      "allocatedBytes": 25624576,
+      "analysisSeconds": 0.030912125017493963,
+      "complete": true,
+      "engine": "darwin-fts",
+      "entries": 100106,
+      "finderMetadataEntries": 1,
+      "findings": 0,
+      "issues": 0,
+      "logicalBytes": 2148302230,
+      "peakRSSBytes": 38600704,
+      "protectedFindings": 0,
+      "seconds": 0.177820666693151
+    }
+  ],
+  "duSeconds": [
+    0.1685219999635592,
+    0.1717944999691099,
+    0.16757462499663234
+  ],
+  "medianScanSeconds": 0.1778265000320971,
+  "medianDuSeconds": 0.1685219999635592,
+  "medianAnalysisSeconds": 0.030912125017493963,
+  "notes": "du retains no searchable tree. RSS includes metadata analysis. Finder .DS_Store files are counted and reported. APFS clone sharing is not deduplicated. No file content read by scanner."
+}

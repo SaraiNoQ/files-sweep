@@ -1,0 +1,12 @@
+.build/
+.swiftpm/
+.DS_Store
+.bench-fixture/
+dist/
+__pycache__/
+*.py[cod]
+.impeccable/
+design-qa.md
+design/qa/
+design/magicpath-ink/qa/
+*.tgz
