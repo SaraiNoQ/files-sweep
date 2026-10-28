@@ -37,10 +37,9 @@ struct WorkspaceView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity).disabled(model.analyzing)
                 }
             } else {
-                VStack(spacing: 18) {
-                    seal.font(.system(size: 36, weight: .regular, design: .serif))
+                VStack(spacing: 24) {
                     Text(model.scanning ? "正在扫描" : "从一个文件夹开始")
-                        .font(.system(size: 25, weight: .semibold))
+                        .font(PaperTypography.objectTitle)
                     if model.scanning { ProgressView() }
                     else {
                         Button("选择文件夹…", action: model.chooseFolder)
@@ -68,6 +67,7 @@ struct WorkspaceView: View {
         .onChange(of: model.snapshot?.generation) { _ in ringGroupIDs = nil; model.search(scope: nil) }
         .onChange(of: radialMap) { _ in ringGroupIDs = nil; model.search(scope: nil) }
         .sheet(isPresented: $showIssues) { issueSheet }
+        .sheet(item: $model.explanationSession) { session in AIExplanationSheet(session: session) }
         .alert("无法完成操作", isPresented: Binding(get: { model.error != nil }, set: { if !$0 { model.error = nil } })) {
             Button("好") { model.error = nil }
         } message: { Text(model.error ?? "") }
@@ -75,20 +75,21 @@ struct WorkspaceView: View {
 
     private func inspector(_ snapshot: ScanSnapshot) -> some View {
         FileInspector(snapshot: snapshot, selectedID: model.selectedID,
-                      finding: model.selectedFinding, onReveal: model.reveal, onOpen: model.openDirectory)
+                      finding: model.selectedFinding, onReveal: model.reveal, onOpen: model.openDirectory,
+                      onExplain: model.beginExplanation, canExplain: !model.isBusy && !model.analyzing)
     }
 
     @ToolbarContentBuilder
     private var workspaceToolbar: some ToolbarContent {
         ToolbarItem(placement: .navigation) {
-            HStack(spacing: 14) {
+            HStack(spacing: 12) {
                 Button(action: model.chooseFolder) { Image(systemName: "folder.badge.plus") }
                     .disabled(model.isBusy).help("选择文件夹（⌘O）").accessibilityLabel("选择文件夹")
             }
             .foregroundStyle(PaperAppearance.text).buttonStyle(PaperButtonStyle())
         }
         ToolbarItem(placement: .navigation) {
-            HStack(spacing: 14) {
+            HStack(spacing: 12) {
                 if model.scanning || model.updating {
                     Button(action: model.stop) { Image(systemName: "stop") }
                         .help("停止").accessibilityLabel("停止")
@@ -137,12 +138,6 @@ struct WorkspaceView: View {
         }
     }
 
-    private var seal: some View {
-        Text("扫").foregroundStyle(PaperAppearance.paper)
-            .padding(4).background(GlassSurface(shape: RoundedRectangle(cornerRadius: 6), tint: PaperAppearance.accent))
-            .rotationEffect(.degrees(-5)).accessibilityHidden(true)
-    }
-
     private var statusBar: some View {
         VStack(spacing: 0) {
             Rectangle().fill(PaperAppearance.line).frame(height: 1)
@@ -163,7 +158,7 @@ struct WorkspaceView: View {
     private func browser(_ snapshot: ScanSnapshot) -> some View {
         let groupIDs = radialMap ? ringGroupIDs : nil
         let results = model.searchResults
-        return VStack(spacing: 10) {
+        return VStack(spacing: 8) {
             HStack(spacing: 6) {
                 scopeButton("全部文件", developerOnly: false)
                 scopeButton("开发产物", developerOnly: true)
@@ -180,16 +175,17 @@ struct WorkspaceView: View {
                 }
                 Spacer()
                 if model.searching { ProgressView().controlSize(.mini) }
-                if let results {
-                    Text((groupIDs != nil ? "分组 · " : "") + (model.matchCount > results.count ? "\(model.matchCount) 项 · 显示前 \(results.count) 项" : "\(results.count) 项"))
-                        .font(.caption).foregroundStyle(PaperAppearance.muted)
-                }
             }.frame(height: 36)
             HStack {
-                Text("名称")
-                Spacer()
-                Text("逻辑大小")
-            }.font(.system(size: 11)).foregroundStyle(PaperAppearance.muted)
+                Text("名称").fixedSize()
+                Spacer(minLength: 8)
+                if let results {
+                    let count = (groupIDs != nil ? "分组 · " : "") + (model.matchCount > results.count ? "\(model.matchCount) 项 · 显示前 \(results.count) 项" : "\(results.count) 项")
+                    Text(count).lineLimit(1).truncationMode(.middle).help(count).layoutPriority(-1)
+                }
+                Spacer(minLength: 8)
+                Text("逻辑大小").fixedSize()
+            }.font(PaperTypography.label).foregroundStyle(PaperAppearance.muted)
                 .padding(.leading, 26).padding(.trailing, 32)
             ZStack {
                 FileOutline(snapshot: snapshot, searchResults: results,
@@ -224,18 +220,18 @@ struct WorkspaceView: View {
                 Button { model.openDirectory(snapshot.entries[focus].parent ?? 0) } label: {
                     Image(systemName: "chevron.left")
                 }.help("上一级目录").accessibilityLabel("上一级目录").disabled(focus == 0)
-                VStack(alignment: .leading, spacing: 5) {
+                VStack(alignment: .leading, spacing: 4) {
                     if focus != 0 {
                         Text(snapshot.root.lastPathComponent + snapshot.url(for: focus).deletingLastPathComponent().path.dropFirst(snapshot.root.path.count))
-                            .font(.system(size: 11)).foregroundStyle(PaperAppearance.muted)
+                            .font(PaperTypography.metadata).foregroundStyle(PaperAppearance.muted)
                             .lineLimit(1).truncationMode(.middle)
                     }
-                    Text(snapshot.entries[focus].name).font(.system(size: radialMap ? 22 : 27, weight: .semibold))
+                    Text(snapshot.entries[focus].name).font(PaperTypography.objectTitle)
                         .lineLimit(1).truncationMode(.middle).help(snapshot.url(for: focus).path)
                 }
                 if !radialMap {
                     Text(formatBytes(snapshot.entries[focus].logicalBytes))
-                        .font(.system(size: 25, weight: .regular, design: .serif))
+                        .font(.system(size: 24, weight: .regular, design: .serif))
                         .monospacedDigit().foregroundStyle(PaperAppearance.muted)
                 }
                 Spacer(minLength: 0)
@@ -255,14 +251,18 @@ struct WorkspaceView: View {
 
     private var issueSheet: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("读取问题").font(.title2)
+            Text("读取问题").font(PaperTypography.dialogTitle)
             Text("共 \(model.snapshot?.issueCount ?? 0) 项，最多保留前 100 条。")
-            ScrollView {
-                ForEach(Array((model.snapshot?.issues ?? []).enumerated()), id: \.offset) { _, issue in
-                    VStack(alignment: .leading) {
-                        Text(issue.path).textSelection(.enabled)
-                        Text(issue.message).foregroundStyle(PaperAppearance.muted)
-                    }.padding(.bottom, 10)
+            GeometryReader { geometry in
+                PaperScrollView(selectionID: 0) {
+                    VStack(alignment: .leading, spacing: 16) {
+                        ForEach(Array((model.snapshot?.issues ?? []).enumerated()), id: \.offset) { _, issue in
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text(issue.path).font(PaperTypography.metadata).textSelection(.enabled)
+                                Text(issue.message).font(PaperTypography.body).foregroundStyle(PaperAppearance.muted)
+                            }.fixedSize(horizontal: false, vertical: true)
+                        }
+                    }.padding(.trailing, 8).frame(width: geometry.size.width, alignment: .leading)
                 }
             }.frame(height: 300)
             HStack { Spacer(); Button("完成") { showIssues = false }.keyboardShortcut(.defaultAction) }

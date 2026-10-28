@@ -115,20 +115,9 @@ struct FileOutline: NSViewRepresentable {
 
     final class Item: NSObject { let id: Int; init(_ id: Int) { self.id = id } }
 
-    final class OutlineScrollView: NSScrollView {
-        override var scrollerStyle: NSScroller.Style {
-            get { super.scrollerStyle }
-            set { super.scrollerStyle = .overlay }
-        }
-
-        override func viewDidMoveToWindow() {
-            super.viewDidMoveToWindow()
-            scrollerStyle = .overlay
-        }
-
+    final class OutlineScrollView: OverlayScrollView {
         override func layout() {
             super.layout()
-            if let scroller = verticalScroller, scroller.scrollerStyle != .overlay { scroller.scrollerStyle = .overlay }
             setAccessibilityIdentifier("FileSweep.directory.\(scrollerStyle.rawValue).\(verticalScroller?.scrollerStyle.rawValue ?? -1)")
             guard let outline = documentView as? NSOutlineView, outline.tableColumns.count == 2 else { return }
             let width = contentView.bounds.width - NSScroller.scrollerWidth(for: .regular, scrollerStyle: .overlay)

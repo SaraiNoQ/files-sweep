@@ -25,7 +25,10 @@ FileSweep · macOS 13+ · Apple Silicon
 macOS 可能阻止首次打开。请先确认下载来源；处理方式参见 Apple 官方说明：
 https://support.apple.com/zh-cn/guide/mac-help/mh40616/mac
 
-应用只读取所选目录的文件元数据，不读取文件正文、不删除文件、不上传数据。
+应用只读取所选目录的文件元数据，不读取文件正文、不删除文件。
+扫描与规则分析在本机完成。AI 默认关闭；启用后点击“AI 辅助判断”，
+会向你配置的服务发送脱敏线索，不包含原始路径、个人文件名或文件内容。
+AI 请求可能产生费用，数据保留政策由该服务决定。
 逻辑大小和分配空间不等于实际可回收空间。
 TEXT
 image="FileSweep-$version-macos-arm64.dmg"

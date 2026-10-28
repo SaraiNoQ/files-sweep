@@ -13,6 +13,9 @@ struct ScanChecks {
         try checks.testMissingRootAndSymlinkRootRejected()
         try checks.testUnreadableDirectoryIsNotEmptySuccess()
         try checks.testRedaction()
+        try checks.testExplanationEndpointAndRequest()
+        try checks.testExplanationResponseValidation()
+        try await checks.testExplanationTransport()
         checks.testTreemapAreas()
         checks.testTreemapExtremeRatios()
         checks.testReadableTreemap()
@@ -39,7 +42,7 @@ struct ScanChecks {
         try checks.testIncrementalPermissionFailureAndRepair()
         try await checks.testLiveDirectoryMonitor()
         try await checks.testLiveRootMoveStopsScope()
-        print("PASS: 32 filesystem, incremental, live-monitor, protection, archive and layout checks")
+        print("PASS: 35 filesystem, incremental, live-monitor, protection, archive, AI and layout checks")
     }
     func fixture(_ body: (URL) throws -> Void) throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)

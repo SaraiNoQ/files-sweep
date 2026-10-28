@@ -38,7 +38,7 @@
 
 ## 下载与安装
 
-当前发布版为 **[v0.4.0](https://github.com/SaraiNoQ/files-sweep/releases/tag/v0.4.0)**，需要 **macOS 13+ 和 Apple Silicon（arm64）**，不支持 Intel Mac。
+当前源码与本地安装包为 **v0.5.0**。已发布的下载版为 **[v0.4.0](https://github.com/SaraiNoQ/files-sweep/releases/tag/v0.4.0)**，需要 **macOS 13+ 和 Apple Silicon（arm64）**，不支持 Intel Mac。
 
 | 下载 | 用途 |
 | --- | --- |
@@ -70,17 +70,21 @@
 
 ## 隐私与数据边界
 
-以下说明对应已发布的 **v0.4.0**：
+以下说明对应当前 **v0.5.0** 源码与本地安装包；上方 v0.4.0 下载版未包含在线 AI：
 
 - **只读元数据**：不读取被扫描文件的正文，不跟随符号链接，不执行被扫描项目中的脚本，不自动扩大扫描范围。
 - **不提供清理操作**：没有删除、移入废纸篓或提权功能；开发产物的“待核验”状态不表示可以安全删除。
-- **本地处理**：扫描与规则分析在本机完成，不上传扫描数据；v0.4.0 尚未接入在线 AI 解释。
+- **可选 AI**：扫描与规则分析在本机完成。AI 默认关闭；在设置中启用后，点击“AI 辅助判断”向指定服务发送脱敏元数据，不发送原始路径、个人文件名或文件内容。密钥仅存本机钥匙串，费用与保留政策取决于所选服务。
 - **记录由你保存**：`.filesweep` 不含文件正文，但包含路径和文件名等元数据，且未加密；分享前请自行检查。打开记录只查看历史状态，主动重扫后才获取当前结果。
 - **统计有边界**：读取失败、取消和跨卷跳过会标记结果不完整。逻辑大小、分配空间和实际可回收空间并不相同；矩形图为保证可读性设有面积下限，不能按面积直接换算字节数。
 
 更详细的规则见 [开发产物识别](docs/developer-rules.md)、[扫描记录格式](docs/scan-archives.md) 和 [性能与已知边界](docs/performance.md)。
 
 ## 从源码构建
+
+v0.5.0 包含“AI 辅助判断”（尚未包含在上方 v0.4.0 发布包）：在应用“设置…”（⌘,）配置完整 Chat Completions 接口地址、模型 ID 与密钥，在文件详情获取解释，主动启用后，点击“AI 辅助判断”即发送脱敏线索并等待结果，不再展示提示词和二次确认。AI 仅提供用途与风险参考；密钥仅存钥匙串，不上传原始路径、个人名称或文件内容。兼容性与验证范围见 [AI 辅助判断](docs/ai-explanation.md)。
+
+当前源码默认关闭自动更新；需要实时监听时，点击工具栏的“开启自动更新”。选择目录或手动重扫不会自行开启监听。
 
 需要 Apple Silicon Mac、Swift 6，以及 Xcode 或 Command Line Tools。
 
@@ -97,7 +101,7 @@ open dist/FileSweep.app
 sh scripts/package-release.sh
 ```
 
-产物位于 `dist/`。脚本会验证镜像、只读挂载核对内含应用并检查签名完整性；默认使用 ad-hoc 签名，不代表通过 Apple 公证。开发构建采用独立签名后原子替换，保留的 `dist/.previous-build-*.app` 可能仍被旧进程使用，请勿在旧进程运行时改写。
+产物位于 `dist/`：`FileSweep-0.5.0-macos-arm64.dmg`、`FileSweep-0.5.0-arm64.zip` 和 `SHA256SUMS.txt`。脚本会验证镜像、只读挂载核对内含应用并检查签名完整性；默认使用 ad-hoc 签名，不代表通过 Apple 公证。开发构建采用独立签名后原子替换，保留的 `dist/.previous-build-*.app` 可能仍被旧进程使用，请勿在旧进程运行时改写。
 
 <details>
 <summary>开发检查与性能基准</summary>
@@ -111,6 +115,9 @@ swift run --disable-sandbox filesweep-checks
 
 sh scripts/check-sunburst-input.sh
 sh scripts/check-outline.sh
+sh scripts/check-scrollbars.sh
+sh scripts/check-ai-session.sh
+sh scripts/check-ai-settings.sh
 python3 scripts/check-publish.py
 ```
 
@@ -134,7 +141,8 @@ sh scripts/benchmark-ui.sh after
 
 ## 文档
 
-- [版本说明](docs/releases/v0.4.0.md)
+- [v0.5.0 版本说明](docs/releases/v0.5.0.md)
+- [v0.4.0 版本说明](docs/releases/v0.4.0.md)
 - [性能与已知边界](docs/performance.md)
 - [开发产物规则与保护边界](docs/developer-rules.md)
 - [自动增量扫描](docs/incremental-scanning.md)

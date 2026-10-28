@@ -39,6 +39,7 @@ extension Workspace {
         do {
             let current = try ScanRootIdentity(root: snapshot.root)
             guard current.device == rootEntry.device, current.inode == rootEntry.inode else {
+                explanationSession?.invalidate()
                 throw ScanError.failed("根目录已被替换，请重新选择目录。")
             }
             try startMonitoring(snapshot.root)
@@ -56,6 +57,7 @@ extension Workspace {
     func receiveChanges(_ changes: [DirectoryChange]) {
         guard let identity = rootIdentity else { return }
         if changes.contains(where: \.rootChanged) {
+            explanationSession?.invalidate()
             stopMonitoring(); markStale(); status = "根目录已移动或替换，请重新选择目录。"; return
         }
         let root = monitorRoot ?? snapshot?.root ?? URL(fileURLWithPath: identity.canonicalPath)
@@ -114,6 +116,7 @@ extension Workspace {
                 self.scheduleUpdate()
             } catch {
                 guard let self, self.sessionID == session, !token.isCancelled else { return }
+                self.explanationSession?.invalidate()
                 self.stopMonitoring(); self.markStale()
                 self.status = "自动更新已停止：" + error.localizedDescription
             }

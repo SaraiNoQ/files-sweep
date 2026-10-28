@@ -7,5 +7,7 @@ struct FileSweepApp: App {
             .defaultSize(width: 1240, height: 820)
             .windowToolbarStyle(.unifiedCompact(showsTitle: false))
             .commands { FileSweepCommands() }
+        Settings { AISettingsView() }
+            .windowResizability(.contentSize)
     }
 }

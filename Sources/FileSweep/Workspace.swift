@@ -11,12 +11,33 @@ func formatBytes(_ count: UInt64) -> String {
 @MainActor
 final class Workspace: ObservableObject {
     private static let archiveType = UTType(exportedAs: "dev.filesweep.scan", conformingTo: .database)
-    @Published var snapshot: ScanSnapshot?
+    @Published var snapshot: ScanSnapshot? {
+        didSet {
+            guard let session = explanationSession,
+                  snapshot?.generation != oldValue?.generation || snapshot?.isStale != oldValue?.isStale else { return }
+            guard let snapshot, let oldValue, snapshot.root == oldValue.root,
+                  snapshot.entries.first?.device == oldValue.entries.first?.device,
+                  snapshot.entries.first?.inode == oldValue.entries.first?.inode,
+                  session.matchesSelection(snapshot: snapshot, entryID: snapshot.generation == session.sourceGeneration
+                    ? session.sourceEntryID : snapshot.entryID(at: session.sourceURL)) else {
+                session.invalidate(); return
+            }
+            session.noteSnapshotChanged()
+        }
+    }
     @Published var developerReport: DeveloperReport?
     @Published var developerOnly = false
     @Published var ecosystem: DeveloperEcosystem?
     @Published var analyzing = false
-    @Published var selectedID: Int?
+    @Published var selectedID: Int? {
+        didSet {
+            guard let session = explanationSession else { return }
+            guard let snapshot, session.matchesSelection(snapshot: snapshot, entryID: selectedID) else {
+                session.invalidate(); return
+            }
+        }
+    }
+    @Published var explanationSession: ExplanationSession?
     @Published var focusID = 0
     @Published var query = ""
     @Published var searchResults: [Int]?
@@ -31,7 +52,7 @@ final class Workspace: ObservableObject {
     @Published var monitoring = false
     @Published var updating = false
     var isBusy: Bool { scanning || transferring || updating }
-    var wantsMonitoring = true
+    var wantsMonitoring = false
     var monitor: DirectoryMonitor?
     var rootIdentity: ScanRootIdentity?
     var monitorRoot: URL?
@@ -61,6 +82,7 @@ final class Workspace: ObservableObject {
 
     func scan(_ root: URL) {
         guard !isBusy else { return }
+        explanationSession?.invalidate()
         stopMonitoring()
         rootIdentity = try? ScanRootIdentity(root: root)
         sessionID = UUID()
@@ -128,6 +150,7 @@ final class Workspace: ObservableObject {
     }
 
     func shutdown() {
+        explanationSession?.invalidate(); explanationSession = nil
         sessionID = UUID()
         cancellation.cancel(); scanTask?.cancel()
         searchTask?.cancel(); searchCancellation.cancel(); searching = false
@@ -233,6 +256,7 @@ final class Workspace: ObservableObject {
         guard panel.runModal() == .OK, let url = panel.url else { return }
         let previousStatus = status
         let resumeMonitoring = monitoring
+        explanationSession?.invalidate()
         stopMonitoring(); markStale(); sessionID = UUID()
         searchTask?.cancel(); searchCancellation.cancel()
         transferring = true; status = "正在读取扫描记录…"

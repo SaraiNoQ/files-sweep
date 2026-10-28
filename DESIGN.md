@@ -18,7 +18,7 @@ colors:
 typography:
   headline:
     fontFamily: "SF Pro, system"
-    fontSize: "27pt"
+    fontSize: "22pt"
     fontWeight: 600
   ring-title:
     fontFamily: "SF Pro, system"
@@ -30,7 +30,7 @@ typography:
     fontWeight: 400
   inspector-title:
     fontFamily: "SF Pro, system"
-    fontSize: "24pt"
+    fontSize: "22pt"
     fontWeight: 600
   app-title:
     fontFamily: "SF Pro, system"
@@ -42,7 +42,19 @@ typography:
     fontWeight: 400
   body:
     fontFamily: "SF Pro, system"
-    fontSize: "13pt"
+    fontSize: "14pt"
+    fontWeight: 400
+  dialog-title:
+    fontFamily: "SF Pro, system"
+    fontSize: "20pt"
+    fontWeight: 600
+  section-title:
+    fontFamily: "SF Pro, system"
+    fontSize: "14pt"
+    fontWeight: 600
+  metadata:
+    fontFamily: "SF Pro, system"
+    fontSize: "12pt"
     fontWeight: 400
   control:
     fontFamily: "SF Pro, system"
@@ -152,11 +164,11 @@ components:
 
 使用平台系统 SF 字体；符号使用 SF Symbols。类型 token 记录 Swift 点数，不是网页 CSS 像素。数字使用系统等宽数字特性；目录总量、较大地图容量和详情逻辑大小使用系统 serif 设计。名称与路径保留系统字形，不导入网页 Noto 字体。
 
-- **Headline / Inspector title**：环图目录标题 22 点、矩形目录标题 27 点，详情名称 24 点；矩形目录大小为 25 点系统衬线，详情逻辑大小为 34 点。环图边长超过 380 点时中心名称/容量为 15/24 点，否则为 12/18 点，容量采用系统衬线。
+- **Headline / Inspector title**：环图与矩形目录标题统一 22 点，详情名称 22 点，名称与路径以 8 点间距成组；矩形目录大小为 24 点系统衬线，详情逻辑大小为 34 点。环图边长超过 380 点时中心名称/容量为 15/24 点，否则为 12/18 点，容量采用系统衬线。
 - **App title**：页头产品名。
 - **Row**：目录名称；目录使用 medium、普通文件使用 regular 字重。搜索结果路径用较小的系统文字（12 点）。
-- **Body / Control**：证据、指标、搜索和按钮。
-- **Label / Caption**：集合切换、保护状态、列头、路径与状态栏。
+- **Body / Control**：证据与解释正文统一 14 点 regular，详情 3 点、AI 4 点行距；原生搜索和按钮保持 13 点，避免紧凑工具栏与固定操作区变宽。
+- **Section / Metadata**：章节标题 14 点 semibold，弹窗标题 20 点 semibold；保护状态、路径、容量标签、列头和快照来源为 12 点。状态栏与地图次级数值保留 11 点以适应固定高度。
 - 地图矩形宽度超过 240 点且高度超过 130 点时，名称与大小使用 16/32 点，大小为系统衬线；其余使用 13/14 点，均保留名称与大小。
 
 **The Quiet Copy Rule.** 删除重复标题、泛泛说明和显而易见的操作提示；必要状态只在相关位置出现。
@@ -171,7 +183,7 @@ components:
 
 目录浏览、集合切换、搜索、加载与空结果共享相同表格容器。加载提示留在栏头，不卸载表格。目录行高 44 点；搜索结果行高 54 点以容纳必要的相对路径。大小列固定 104 点，数字右对齐；表格文档宽度按实际 clip 宽度减去系统 overlay 滚动条宽度计算，再扣除大小列得到名称列；关闭自动尺寸调整，由布局统一控制。使用 plain 表格样式、零单元格间距和预留的纵向滚动条槽，避免右侧遮挡，无横向滚动条。
 
-地图不滚动。目录与详情仅使用标准 NSScroller 的 `.overlay` 模式，无自绘滑块。目录在挂入窗口与布局时保持 scroll view 和实际纵向滚动条为 overlay，并手动预留系统滚动条宽度，避免遮挡大小列。详情将 `TransparentScrollbars` 标记放在自身滚动内容内，仅通过 `enclosingScrollView` 设置所属 scroll view 及实际纵横滚动条为 overlay、关闭背景绘制；不遍历整窗，也不改全局偏好。详情单独滚动，目录的“进入目录”与 Finder 操作固定在滚动区外；普通文件仅显示 Finder 操作。路径显示根目录名起始的相对位置，最多两行、中部截断，完整路径可通过工具提示读取。
+地图不滚动。目录与详情仅使用标准 NSScroller 的 `.overlay` 模式，无自绘滑块。目录与详情共享 `OverlayScrollView`，在 setter、挂入窗口与布局时持续保持 scroll view 和实际滚动条为 overlay、关闭 scroll/clip 背景绘制；目录仍手动预留系统滚动条宽度，避免遮挡大小列。详情由 `PaperScrollView` 持有原生滚动容器，以宽度约束承载 SwiftUI 内容，传递父环境与动画事务。同一项目更新保留滚动位置，切换项目回到顶部；不再使用异步标记修改 SwiftUI 内部滚动容器，不遍历整窗，也不改全局偏好。详情单独滚动，以当前栏宽测量长名称和证据的完整换行高度；“进入目录”、AI 辅助判断与 Finder 操作固定在同一底栏，间距 8 点。普通文件显示 Finder 与 AI 操作。路径显示根目录名起始的相对位置，最多两行、中部截断，完整路径可通过工具提示读取。
 
 ## Elevation & Depth
 
@@ -229,7 +241,7 @@ AppKit `NSOutlineView` 保留行复用、惰性展开与按逻辑大小排序；
 
 ### Inspector and status
 
-详情显示逻辑大小、分配空间、识别依据、保护原因及仍需确认的信息；已识别项目只使用“受保护 / 待核验”与对应盾牌符号，不生成安全评分；其他项目显示用途未确认。历史候选项沿用保护规则。底部持续显示统计状态与“逻辑大小不等于可回收空间”，读取问题按需展开。AI 入口仍收起，发送边界不在工作区重复铺陈。
+详情显示逻辑大小、分配空间、识别依据、保护原因及仍需确认的信息；已识别项目只使用“受保护 / 待核验”与对应盾牌符号，不生成安全评分；其他项目显示用途未确认。历史候选项沿用保护规则。底部持续显示统计状态与“逻辑大小不等于可回收空间”，读取问题按需展开。2026-10-28 新增“AI 辅助判断”详情入口，文件名与保护状态同一行对齐，路径紧随名称；目录结果数量移至列标题行，避免挤压集合和语言筛选。接口地址、模型和密钥放在原生应用设置（⌘,）；点击后直接发送，等待状态和结果放在独立弹窗，不再展示提示词或二次确认；结果固定为“这是什么、删除前还缺什么信息、建议怎么检查”，各段间距 24 点、段内 8 点，正文 14 点加 4 点行距；本地状态、快照时间与服务来源以 6 点间距成组，风险说明与关闭按钮同排；本地保护状态始终位于结果之前。弹窗沿用现有控件与材质，属于待用户评审的功能版，不改视觉 token；流程草图见 design/ai-assistance-brief.md。
 
 详情选择采用 0.16 秒 ease-out 淡入，矩形地图按钮选中变化采用 0.12 秒、环图选中变化采用 0.12 秒 ease-out；`accessibilityReduceMotion` 开启时停用动画。没有用于扫描或路径数据的网络动画依赖。
 
@@ -250,3 +262,29 @@ AppKit `NSOutlineView` 保留行复用、惰性展开与按逻辑大小排序；
 - Don’t 把系统字体误记为 web/iOS 平台，也不要把预览 HTML 当作应用实现。
 
 本轮 32 项核心检查及 `scripts/check-sunburst-input.sh` 的原生内存 NSEvent 事件测试、Workspace 分组搜索测试通过；最终 Release 包已独立签名、原子发布并通过严格签名验证。既有 10 组基础配色对比度记录继续有效。尚未进行真实用户窗口交互、视觉或 VoiceOver 验证，未使用 Computer Use，不声称截图验收；macOS 13 实机检查仍未完成。
+
+
+## Layout refinement · 2026-10-29
+
+本轮只调整已确认视觉中的间距与信息分组。初始页标题 22 点，与选择按钮间距 24 点；不恢复“扫”印记。工具栏控件间距 12 点，目录分组间距 8 点；设置说明合为组内 8 点、组间 24 点，说明 12 点加 3 点行距，不更改发送范围与风险文案。
+
+原生离屏检查覆盖 1000×620 / 1240×820 工作区、360 点窄详情、500 点证据详情、长名称、680×620 AI 结果与设置自然高度。使用项目内合成目录、内存设置和模拟回复，不读取个人目录、密钥或调用真实模型。证据与复现脚本见 `design/qa/layout-2026-10-29/README.md`。离屏内容不含真实窗口标题栏，不能替代 VoiceOver、真实窗口操作或 macOS 13 实机验收；既有 sidecar 不在本轮刷新范围。
+
+
+## App icon · 2026-10-29
+
+应用图标沿用文件夹与空间分块符号，以纸色底板、墨青文件夹、朱砂主块和浅石色辅助块替代旧苔绿色；保留透明外缘与轻微玻璃高光。源图、原生尺寸预览及内置 ImageGen 提示词见 `design/app-icon/`，应用资源为 `resources/AppIcon.icns`。不恢复已删除的初始页“扫”印记。自动更新改为新窗口默认关闭，由工具栏主动启用，不新增标签或配置层。
+
+
+## Typeset refinement · 2026-10-29
+
+`PaperTypography` 集中六个当前实际使用的原生字体角色：objectTitle 22/semibold、dialogTitle 20/semibold、sectionTitle 14/semibold、body 14/regular、metadata 12/regular、label 12/medium。用于 SwiftUI 工作区、详情、AI 与设置；不引入外部字体或下载，中文继续使用系统回退。容量保持系统衬线与等宽数字，AppKit 目录保留 14 点主名称、12 点路径和 13 点等宽容量，图例与状态栏保持紧凑密度。
+
+对象标题不再因环图/矩形模式跳为不同字号；章节标题不再小于正文。详情说明统一到 AI 的 14 点阅读角色，关键信息标签由 11 提升至 12 点，底部操作与扫描/发送逻辑不变。原生离屏对照与复现脚本见 `design/qa/typeset-2026-10-29/README.md`；未覆盖真实标题栏、VoiceOver、系统文字放大或 macOS 13 实机。既有设计 sidecar 未在本轮修复。
+
+
+## Pre-release polish · 2026-10-29
+
+保留已确认的布局、字体、配色和新图标。把详情的原生透明滚动容器命名为 `PaperScrollView` 并实际复用于 AI 结果和读取问题；按当前栏宽测量内容，长回复不再恢复白色传统轨道。AI 错误与“重试”在中间成组，取消后使用“重新判断”，未启用只展示一次状态；请求/取消/失效保护不变。设置的保存按钮使用原生 Return 默认动作，Escape 关闭 AI 弹窗不变。
+
+安装说明同步当前可选 AI 的数据发送边界，保留临时签名/未公证说明；不修改已发布 v0.4.0 的历史说明，不自动发布外网。状态覆盖与证据见 `design/qa/polish-2026-10-29/README.md`。无有效 critique-storage 快照，本轮按独立状态检查执行，未关闭不存在的历史快照。

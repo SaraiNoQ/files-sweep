@@ -23,6 +23,15 @@ enum PaperAppearance {
     ]
 }
 
+enum PaperTypography {
+    static let objectTitle = Font.system(size: 22, weight: .semibold)
+    static let dialogTitle = Font.system(size: 20, weight: .semibold)
+    static let sectionTitle = Font.system(size: 14, weight: .semibold)
+    static let body = Font.system(size: 14)
+    static let metadata = Font.system(size: 12)
+    static let label = Font.system(size: 12, weight: .medium)
+}
+
 struct PaperButtonStyle: ButtonStyle {
     var prominent = false
     var selected = false
@@ -84,26 +93,74 @@ struct GlassPressStyle: ButtonStyle {
     }
 }
 
-/// The marker lives inside scroll content, so it only styles its own scroll view.
-struct TransparentScrollbars: NSViewRepresentable {
-    func makeNSView(context: Context) -> Marker { Marker() }
-    func updateNSView(_ view: Marker, context: Context) { view.configureAfterLayout() }
+class OverlayScrollView: NSScrollView {
+    override var scrollerStyle: NSScroller.Style {
+        get { super.scrollerStyle }
+        set { super.scrollerStyle = .overlay }
+    }
 
-    final class Marker: NSView {
-        override func viewDidMoveToWindow() {
-            super.viewDidMoveToWindow()
-            configureAfterLayout()
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        scrollerStyle = .overlay
+    }
+
+    override func layout() {
+        super.layout()
+        for scroller in [verticalScroller, horizontalScroller].compactMap({ $0 }) {
+            if scroller.scrollerStyle != .overlay { scroller.scrollerStyle = .overlay }
         }
-        func configureAfterLayout() {
-            DispatchQueue.main.async { [weak self] in
-                guard let scroll = self?.enclosingScrollView else { return }
-                if scroll.scrollerStyle != .overlay { scroll.scrollerStyle = .overlay }
-                if let bar = scroll.verticalScroller, bar.scrollerStyle != .overlay { bar.scrollerStyle = .overlay }
-                if let bar = scroll.horizontalScroller, bar.scrollerStyle != .overlay { bar.scrollerStyle = .overlay }
-                if scroll.drawsBackground { scroll.drawsBackground = false }
-                if scroll.contentView.drawsBackground { scroll.contentView.drawsBackground = false }
-                scroll.setAccessibilityIdentifier("FileSweep.transparent.\(scroll.scrollerStyle.rawValue).\(scroll.verticalScroller?.scrollerStyle.rawValue ?? -1)")
-            }
+        drawsBackground = false
+        contentView.drawsBackground = false
+    }
+}
+
+struct PaperScrollView<Content: View>: NSViewRepresentable {
+    let selectionID: Int?
+    let content: Content
+
+    init(selectionID: Int?, @ViewBuilder content: () -> Content) {
+        self.selectionID = selectionID
+        self.content = content()
+    }
+
+    func makeCoordinator() -> Coordinator { Coordinator(selectionID: selectionID) }
+
+    func makeNSView(context: Context) -> OverlayScrollView {
+        let scroll = OverlayScrollView()
+        scroll.scrollerStyle = .overlay
+        scroll.hasVerticalScroller = true
+        scroll.hasHorizontalScroller = false
+        scroll.drawsBackground = false
+        scroll.contentView.drawsBackground = false
+        let host = NSHostingView(rootView: hostedContent(context: context))
+        host.sizingOptions = [.intrinsicContentSize]
+        host.translatesAutoresizingMaskIntoConstraints = false
+        scroll.documentView = host
+        NSLayoutConstraint.activate([
+            host.leadingAnchor.constraint(equalTo: scroll.contentView.leadingAnchor),
+            host.topAnchor.constraint(equalTo: scroll.contentView.topAnchor),
+            host.widthAnchor.constraint(equalTo: scroll.contentView.widthAnchor)
+        ])
+        scroll.setAccessibilityIdentifier("FileSweep.content.scroll")
+        return scroll
+    }
+
+    func updateNSView(_ scroll: OverlayScrollView, context: Context) {
+        guard let host = scroll.documentView as? NSHostingView<AnyView> else { return }
+        host.rootView = hostedContent(context: context)
+        if context.coordinator.selectionID != selectionID {
+            context.coordinator.selectionID = selectionID
+            scroll.contentView.scroll(to: .zero)
+            scroll.reflectScrolledClipView(scroll.contentView)
         }
+    }
+
+    private func hostedContent(context: Context) -> AnyView {
+        AnyView(content.environment(\.self, context.environment).transaction { $0 = context.transaction })
+    }
+
+    final class Coordinator {
+        var selectionID: Int?
+        init(selectionID: Int?) { self.selectionID = selectionID }
     }
 }
