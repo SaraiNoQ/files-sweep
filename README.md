@@ -38,7 +38,7 @@
 
 ## 下载与安装
 
-当前源码与本地安装包为 **v0.5.0**。已发布的下载版为 **[v0.4.0](https://github.com/SaraiNoQ/files-sweep/releases/tag/v0.4.0)**，需要 **macOS 13+ 和 Apple Silicon（arm64）**，不支持 Intel Mac。
+当前源码与本地安装包为 **v0.5.1**。已发布的下载版为 **[v0.4.0](https://github.com/SaraiNoQ/files-sweep/releases/tag/v0.4.0)**，需要 **macOS 13+ 和 Apple Silicon（arm64）**，不支持 Intel Mac。
 
 | 下载 | 用途 |
 | --- | --- |
@@ -46,7 +46,7 @@
 | [ZIP 压缩包](https://github.com/SaraiNoQ/files-sweep/releases/download/v0.4.0/FileSweep-0.4.0-arm64.zip) | 解压后将应用放入“应用程序” |
 | [SHA-256 校验文件](https://github.com/SaraiNoQ/files-sweep/releases/download/v0.4.0/SHA256SUMS.txt) | 核对下载文件是否完整 |
 
-更新前请先退出旧版 FileSweep，再替换“应用程序”中的副本。
+v0.5.1 本地构建推荐双击 `FileSweep-0.5.1-macos-arm64.pkg`：自动覆盖升级 `/Applications/FileSweep.app`，无需先卸载，保留设置、钥匙串密钥和已保存扫描。旧版仍在运行时，系统安装器会要求先退出再继续。新版 DMG 内也放置同一个 PKG；ZIP 是便携应用，不执行自动升级。手动放在其他位置的副本不会自动追踪或删除。
 
 > **首次打开**：当前发布包使用 ad-hoc 临时签名，尚未经过 Developer ID 签名或 Apple 公证，macOS 可能阻止首次打开。请先核对下载来源，再参考 [Apple 官方说明](https://support.apple.com/zh-cn/guide/mac-help/mh40616/mac)。
 
@@ -70,7 +70,7 @@
 
 ## 隐私与数据边界
 
-以下说明对应当前 **v0.5.0** 源码与本地安装包；上方 v0.4.0 下载版未包含在线 AI：
+以下说明对应当前 **v0.5.1** 源码与本地安装包；上方 v0.4.0 下载版未包含在线 AI：
 
 - **只读元数据**：不读取被扫描文件的正文，不跟随符号链接，不执行被扫描项目中的脚本，不自动扩大扫描范围。
 - **不提供清理操作**：没有删除、移入废纸篓或提权功能；开发产物的“待核验”状态不表示可以安全删除。
@@ -101,7 +101,7 @@ open dist/FileSweep.app
 sh scripts/package-release.sh
 ```
 
-产物位于 `dist/`：`FileSweep-0.5.0-macos-arm64.dmg`、`FileSweep-0.5.0-arm64.zip` 和 `SHA256SUMS.txt`。脚本会验证镜像、只读挂载核对内含应用并检查签名完整性；默认使用 ad-hoc 签名，不代表通过 Apple 公证。开发构建采用独立签名后原子替换，保留的 `dist/.previous-build-*.app` 可能仍被旧进程使用，请勿在旧进程运行时改写。
+产物位于 `dist/`：`FileSweep-0.5.1-macos-arm64.pkg`、内含 PKG 的 `FileSweep-0.5.1-macos-arm64.dmg`、便携版 `FileSweep-0.5.1-arm64.zip` 和 `SHA256SUMS.txt`。脚本会展开验证安装范围、升级/防降级/退出旧版规则和应用签名，再验证 DMG、ZIP 和校验值。安装器未签名，应用为 ad-hoc 临时签名，尚未经过 Apple 公证。开发构建采用独立签名后原子替换，保留的 `dist/.previous-build-*.app` 可能仍被旧进程使用，请勿在旧进程运行时改写。
 
 <details>
 <summary>开发检查与性能基准</summary>
@@ -141,6 +141,7 @@ sh scripts/benchmark-ui.sh after
 
 ## 文档
 
+- [v0.5.1 版本说明](docs/releases/v0.5.1.md)
 - [v0.5.0 版本说明](docs/releases/v0.5.0.md)
 - [v0.4.0 版本说明](docs/releases/v0.4.0.md)
 - [性能与已知边界](docs/performance.md)

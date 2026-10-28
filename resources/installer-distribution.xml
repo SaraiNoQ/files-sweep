@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<installer-gui-script minSpecVersion="2">
+    <title>FileSweep</title>
+    <welcome file="welcome.txt" mime-type="text/plain"/>
+    <options customize="never" hostArchitectures="arm64" rootVolumeOnly="true"/>
+    <domains enable_anywhere="false" enable_currentUserHome="false" enable_localSystem="true"/>
+    <volume-check>
+        <allowed-os-versions><os-version min="13.0"/></allowed-os-versions>
+    </volume-check>
+    <choices-outline><line choice="filesweep"/></choices-outline>
+    <choice id="filesweep" title="FileSweep" visible="false">
+        <pkg-ref id="dev.filesweep.mac.pkg"/>
+    </choice>
+    <pkg-ref id="dev.filesweep.mac.pkg">FileSweep-component.pkg</pkg-ref>
+    <pkg-ref id="dev.filesweep.mac.pkg">
+        <must-close><app id="dev.filesweep.mac"/></must-close>
+    </pkg-ref>
+</installer-gui-script>
